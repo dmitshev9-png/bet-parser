@@ -10,7 +10,15 @@ app = Flask(__name__)
 
 def get_tips():
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--disable-setuid-sandbox"
+            ]
+        )
         page = browser.new_page()
         page.goto("https://bettingtips1x2.com", timeout=60000)
         page.wait_for_timeout(8000)
