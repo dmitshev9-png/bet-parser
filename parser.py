@@ -5,56 +5,32 @@
 
 from flask import Flask, jsonify
 from playwright.sync_api import sync_playwright
-from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-
-def get_tipsters():
-
-    url = "https://www.bettingtips1x2.com/tipsters.html"
-
+def get_tips():
     with sync_playwright() as p:
-
         browser = p.chromium.launch(headless=True)
-
         page = browser.new_page()
 
-        page.goto(url, timeout=60000)
+        page.goto("https://bettingtips1x2.com", timeout=60000)
 
-        html = page.content()
+        # ждём обход Cloudflare
+        page.wait_for_timeout(8000)
+
+        tips = page.locator(".tipsDiv p strong").all_text_contents()
 
         browser.close()
+        return tips
 
-    soup = BeautifulSoup(html, "html.parser")
-
-    matches = []
-
-    lines = soup.get_text().split("\n")
-
-    for line in lines:
-
-        if ":" in line and "-" in line:
-
-            matches.append(line.strip())
-
-    return matches
-
-
-@app.route("/tipsters")
-def tipsters():
-
-    data = get_tipsters()
-
+@app.route("/tips")
+def tips():
+    data = get_tips()
     return jsonify(data)
-
 
 @app.route("/")
 def home():
-
-    return "Bet Parser running"
-
+    return "Parser is working 🚀"
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=10000)
