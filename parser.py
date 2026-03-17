@@ -9,6 +9,9 @@ from playwright.sync_api import sync_playwright
 app = Flask(__name__)
 
 def get_tips():
+    import subprocess
+    subprocess.run(["playwright", "install", "chromium"])
+
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
