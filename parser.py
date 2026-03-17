@@ -58,5 +58,5 @@ def home():
 
 
 @app.route("/tips")
-def tips():
+def get_tips_api():
     return jsonify(get_tips())
