@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: bet-parser
+    runtime: python
+    buildCommand: pip install -r requirements.txt && playwright install chromium
+    startCommand: python parser.py
