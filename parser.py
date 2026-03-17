@@ -7,13 +7,24 @@ app = Flask(__name__)
 
 def get_tips():
     try:
-        url = "https://bettingtips1x2.com"
+        url = "https://bettingtips1x2.com/tipsters.html"
 
         headers = {
-            "User-Agent": "Mozilla/5.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Referer": "https://bettingtips1x2.com/",
         }
 
-        response = requests.get(url, headers=headers, timeout=30)
+        session = requests.Session()
+        session.headers.update(headers)
+
+        # 🔥 ШАГ 1 — заходим на главную (получаем cookies)
+        session.get("https://bettingtips1x2.com")
+
+        # 🔥 ШАГ 2 — идём на нужную страницу
+        response = session.get(url, timeout=30)
 
         if response.status_code != 200:
             return [f"HTTP ERROR: {response.status_code}"]
