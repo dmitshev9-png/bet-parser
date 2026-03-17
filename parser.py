@@ -9,28 +9,40 @@ import os
 app = Flask(__name__)
 
 def get_tips():
-    with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--disable-setuid-sandbox"
-            ]
-        )
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--disable-setuid-sandbox"
+                ]
+            )
 
-        page = browser.new_page(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
-        )
+            page = browser.new_page(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+            )
 
-        page.goto("https://bettingtips1x2.com", timeout=60000)
-        page.wait_for_load_state("networkidle")
+            # 🔥 правильный goto
+            page.goto(
+                "https://bettingtips1x2.com",
+                wait_until="domcontentloaded",
+                timeout=60000
+            )
 
-        tips = page.locator("strong").all_text_contents()
+            # даём странице прогрузиться
+            page.wait_for_timeout(5000)
 
-        browser.close()
-        return tips
+            # 🔥 правильный селектор
+            tips = page.locator(".tipsDiv strong").all_text_contents()
+
+            browser.close()
+            return tips
+
+    except Exception as e:
+        return [f"ERROR: {str(e)}"]
 
 
 @app.route("/")
