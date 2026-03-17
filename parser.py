@@ -1,45 +1,38 @@
 ﻿# ==========================================
-# BETTINGTIPS PARSER API
+# BETTINGTIPS PARSER API (LIGHT VERSION)
 # ==========================================
 
 from flask import Flask, jsonify
-from playwright.sync_api import sync_playwright
+import requests
+from bs4 import BeautifulSoup
 import os
 
 app = Flask(__name__)
 
 def get_tips():
     try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=True,
-                args=[
-                    "--no-sandbox",
-                    "--disable-dev-shm-usage",
-                    "--disable-gpu",
-                    "--disable-setuid-sandbox"
-                ]
-            )
+        url = "https://bettingtips1x2.com"
 
-            page = browser.new_page(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
-            )
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+        }
 
-            # 🔥 правильный goto
-            page.goto(
-                "https://bettingtips1x2.com",
-                wait_until="domcontentloaded",
-                timeout=60000
-            )
+        response = requests.get(url, headers=headers, timeout=30)
+        soup = BeautifulSoup(response.text, "html.parser")
 
-            # даём странице прогрузиться
-            page.wait_for_timeout(5000)
+        tips = []
 
-            # 🔥 правильный селектор
-            tips = page.locator(".tipsDiv strong").all_text_contents()
+        # ищем блоки с прогнозами
+        tip_blocks = soup.select(".tipsDiv")
 
-            browser.close()
-            return tips
+        for block in tip_blocks:
+            matches = block.find_all("strong")
+            for m in matches:
+                text = m.get_text(strip=True)
+                if text:
+                    tips.append(text)
+
+        return tips if tips else ["No tips found"]
 
     except Exception as e:
         return [f"ERROR: {str(e)}"]
