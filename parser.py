@@ -1,8 +1,4 @@
-﻿# ==========================================
-# BETTINGTIPS PARSER API (STABLE REQUESTS VERSION)
-# ==========================================
-
-from flask import Flask, jsonify
+﻿from flask import Flask, jsonify
 import requests
 from bs4 import BeautifulSoup
 import os
@@ -26,30 +22,25 @@ def get_tips():
 
         tips = []
 
-        # 🔥 ищем все блоки Today's Predictions
         prediction_blocks = soup.find_all("strong", string="Today's Predictions:")
 
         if not prediction_blocks:
             return ["ERROR: Predictions not found"]
 
         for block in prediction_blocks:
-            # берём следующий элемент после strong
             current = block.next_sibling
 
-            # проходим по следующим элементам
             while current:
                 if current.name == "br":
                     current = current.next_sibling
                     continue
 
-                # если дошли до следующего блока — стоп
                 if current.name == "div":
                     break
 
                 if isinstance(current, str):
                     text = current.strip()
 
-                    # фильтр матчей
                     if text and ":" in text and "-" in text:
                         tips.append(text)
 
@@ -59,3 +50,13 @@ def get_tips():
 
     except Exception as e:
         return [f"ERROR: {str(e)}"]
+
+
+@app.route("/")
+def home():
+    return "Parser is working 🚀"
+
+
+@app.route("/tips")
+def tips():
+    return jsonify(get_tips())
